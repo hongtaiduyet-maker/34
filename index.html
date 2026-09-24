@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>บันทึกขายดิน - รถบรรทุก</title>
+  <style>
+    :root {
+      --primary: #0f766e; --primary-dark: #0d5c56; --primary-light: #14b8a6;
+      --bg: #f0fdfa; --card: #ffffff; --text: #134e4a; --danger: #dc2626;
+      --border: #99f6e4; --shadow: 0 4px 12px rgba(15,118,110,0.12); --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; padding-bottom: 20px; line-height: 1.45; }
+    #loginScreen { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(160deg, #0f766e, #134e4a); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; color: white; }
+    #loginScreen.hidden { display: none; }
+    .login-box { background: rgba(255,255,255,0.12); backdrop-filter: blur(12px); border-radius: 24px; padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+    .login-box h1 { font-size: 1.5rem; margin-bottom: 6px; }
+    .login-box .sub { font-size: 0.85rem; opacity: 0.85; margin-bottom: 20px; }
+    .login-box input, .login-box select {
+      width: 100%; padding: 12px 14px; border-radius: 12px; border: none;
+      font-size: 1rem; background: rgba(255,255,255,0.95); color: #134e4a;
+      margin-bottom: 10px; outline: none; text-align: left; letter-spacing: normal;
+    }
+    .login-box input[type=password] {
+      text-align: center; letter-spacing: 6px; font-size: 1.25rem;
+    }
+    .login-tabs button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; position: relative; z-index: 5; }
+    .login-box .btn-login { width: 100%; padding: 14px; border: none; border-radius: 14px; background: white; color: var(--primary-dark); font-size: 1.05rem; font-weight: 700; cursor: pointer; margin-top: 6px; }
+    .login-error { color: #fecaca; font-size: 0.85rem; min-height: 20px; margin-top: 8px; }
+    .login-hint { font-size: 0.75rem; opacity: 0.7; margin-top: 14px; line-height: 1.4; }
+    #appRoot { display: none; } #appRoot.show { display: block; }
+    .header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 14px 16px 18px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.2rem; font-weight: 700; }
+    .header .sub { font-size: 0.78rem; opacity: 0.9; margin-top: 2px; }
+    .header .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; }
+    .date-bar { display: flex; align-items: center; gap: 8px; margin-top: 10px; background: rgba(255,255,255,0.15); border-radius: 12px; padding: 8px 12px; }
+    .date-bar input[type="date"] { flex: 1; background: transparent; border: none; color: white; font-size: 1rem; font-weight: 600; outline: none; }
+    .date-bar input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+    .date-nav button { background: rgba(255,255,255,0.2); border: none; color: white; width: 34px; height: 34px; border-radius: 10px; font-size: 1.05rem; cursor: pointer; }
+    .container { padding: 12px; max-width: 640px; margin: 0 auto; }
+    .card { background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .card h2 { font-size: 0.95rem; margin-bottom: 10px; color: var(--primary-dark); display: flex; align-items: center; gap: 6px; }
+    .voice-section { text-align: center; padding: 18px 12px; }
+    .voice-btn { width: 90px; height: 90px; border-radius: 50%; border: none; background: linear-gradient(145deg, var(--primary-light), var(--primary)); color: white; font-size: 2.3rem; cursor: pointer; box-shadow: 0 6px 20px rgba(15,118,110,0.4); }
+    .voice-btn.listening { animation: pulse 1.2s infinite; background: linear-gradient(145deg, #f43f5e, #e11d48); }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(244,63,94,0.5); } 70% { box-shadow: 0 0 0 20px rgba(244,63,94,0); } 100% { box-shadow: 0 0 0 0 rgba(244,63,94,0); } }
+    .voice-status { margin-top: 10px; font-size: 0.9rem; min-height: 22px; color: var(--primary-dark); }
+    .voice-hint { font-size: 0.75rem; color: #64748b; margin-top: 6px; line-height: 1.4; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-group { display: flex; flex-direction: column; gap: 3px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 0.75rem; font-weight: 600; color: #0f766e; }
+    input, select, textarea { border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 1rem; background: #f8fffe; color: var(--text); outline: none; width: 100%; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); background: white; }
+    textarea { resize: vertical; min-height: 56px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .btn { border: none; border-radius: 12px; padding: 12px 16px; font-size: 0.92rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 1; min-width: 90px; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #e0f2f1; color: var(--primary-dark); }
+    .btn-danger { background: #fee2e2; color: var(--danger); }
+    .btn-summary { background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; width: 100%; padding: 14px; font-size: 1rem; border-radius: 14px; box-shadow: 0 4px 14px rgba(15,118,110,0.3); margin-bottom: 12px; border: none; font-weight: 700; cursor: pointer; }
+    .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat { background: linear-gradient(135deg, #ccfbf1, #f0fdfa); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid var(--border); }
+    .stat .num { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+    .stat .lbl { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+    .record-list { display: flex; flex-direction: column; gap: 8px; }
+    .record-item { background: #f8fffe; border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .record-item .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .record-item .truck { font-weight: 700; font-size: 1.02rem; color: var(--primary-dark); }
+    .record-item .team { font-size: 0.75rem; background: var(--primary); color: white; padding: 2px 8px; border-radius: 20px; }
+    .record-item .meta { font-size: 0.8rem; color: #64748b; margin-top: 6px; display: grid; gap: 2px; }
+    .record-item .actions { display: flex; gap: 6px; margin-top: 8px; }
+    .record-item .actions button { flex: 1; padding: 8px; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .empty { text-align: center; padding: 20px; color: #94a3b8; font-size: 0.88rem; }
+    .tabs { display: flex; background: white; border-radius: 14px; padding: 4px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); position: sticky; top: 105px; z-index: 50; }
+    .tab { flex: 1; text-align: center; padding: 10px 2px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: #64748b; }
+    .tab.active { background: var(--primary); color: white; }
+    .panel { display: none; } .panel.active { display: block; }
+    .search-box { position: relative; margin-bottom: 10px; }
+    .search-box input { padding-left: 38px; }
+    .search-box::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
+    .manage-list { display: flex; flex-direction: column; gap: 8px; }
+    .manage-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f8fffe; border-radius: 10px; border: 1px solid var(--border); gap: 8px; }
+    .manage-item .info { flex: 1; min-width: 0; }
+    .manage-item .info strong { display: block; }
+    .manage-item .info small { color: #64748b; font-size: 0.78rem; }
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #134e4a; color: white; padding: 12px 20px; border-radius: 30px; font-size: 0.88rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 90%; text-align: center; }
+    .toast.show { opacity: 1; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; display: none; align-items: flex-end; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: white; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 20px 16px 28px; max-height: 88vh; overflow-y: auto; }
+    .modal h3 { font-size: 1.1rem; margin-bottom: 14px; color: var(--primary-dark); }
+    .group-header { background: var(--primary); color: white; padding: 8px 12px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; margin: 10px 0 6px; display: flex; justify-content: space-between; }
+    .filter-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 6px; }
+    .chip { white-space: nowrap; padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .daily-report { background: #f0fdfa; border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 0.88rem; line-height: 1.55; white-space: pre-wrap; max-height: 48vh; overflow-y: auto; }
+    .truck-edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+    @media (min-width: 500px) { .summary-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      #printArea, #printArea * { visibility: visible !important; }
+      #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 16px; font-size: 12pt; }
+    }
+    .history-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-top: 8px; font-size: 0.78rem; max-height: 140px; overflow-y: auto; }
+    .history-item { padding: 3px 0; border-bottom: 1px solid #e2e8f0; color: #475569; }
+    .quick-search { display: flex; gap: 6px; margin-bottom: 10px; }
+    .quick-search input { flex: 1; }
+    .login-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+    .login-tabs button { flex: 1; padding: 10px; border: none; border-radius: 12px; background: rgba(255,255,255,0.15); color: white; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
+    .login-tabs button.active { background: white; color: #0d5c56; }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <div style="font-size:2.6rem;margin-bottom:4px">🚛</div>
+      <h1>บันทึกขายดิน</h1>
+      <div class="sub" id="loginSub">เข้าสู่ระบบหรือเพิ่มผู้ใช้ใหม่</div>
+      <div class="login-tabs">
+        <button type="button" class="active" id="tabLoginBtn" onclick="window.switchLoginTab && window.switchLoginTab('login')">เข้าสู่ระบบ</button>
+        <button type="button" id="tabRegBtn" onclick="window.switchLoginTab && window.switchLoginTab('register')">เพิ่มผู้ใช้ใหม่</button>
+      </div>
+      <div id="loginForm">
+        <select id="loginUserSelect">
+          <option value="">-- เลือกผู้ใช้ --</option>
+        </select>
+        <input type="password" id="pinInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="รหัส PIN" autocomplete="off" />
+        <button type="button" class="btn-login" onclick="handleLogin()">เข้าสู่ระบบ</button>
+        <div class="login-error" id="loginError"></div>
+        <button type="button" id="goRegisterLink" onclick="window.switchLoginTab && window.switchLoginTab('register')" style="margin-top:12px;background:transparent;border:1px solid rgba(255,255,255,0.5);color:#fff;padding:10px;border-radius:12px;width:100%;font-size:0.9rem;cursor:pointer">+ สร้างผู้ใช้ใหม่</button>
+      </div>
+      <div id="setupForm" style="display:none">
+        <input type="text" id="regName" placeholder="ชื่อผู้ใช้ (เช่น ช่างแดง)" maxlength="30" autocomplete="username" />
+        <input type="password" id="newPin" maxlength="6" inputmode="numeric" placeholder="ตั้ง PIN 4-6 หลัก" autocomplete="new-password" />
+        <input type="password" id="confirmPin" maxlength="6" inputmode="numeric" placeholder="ยืนยัน PIN" autocomplete="new-password" />
+        <button type="button" class="btn-login" onclick="setupPin()">สร้างผู้ใช้</button>
+        <div class="login-error" id="setupError"></div>
+        <button type="button" onclick="window.switchLoginTab && window.switchLoginTab('login')" style="margin-top:10px;background:transparent;border:1px solid rgba(255,255,255,0.5);color:#fff;padding:10px;border-radius:12px;width:100%;font-size:0.9rem;cursor:pointer">← กลับไปเข้าสู่ระบบ</button>
+      </div>
+      <div class="login-hint">ข้อมูลเก็บในเครื่องนี้ · หลายผู้ใช้ได้ · แต่ละคนมี PIN ของตัวเอง<br>ลืมรหัส = ล้างข้อมูลเว็บไซต์ใน Chrome</div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appRoot">
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <h1>🚛 บันทึกขายดิน</h1>
+          <div class="sub">หลายทีม • หลายคัน • คนขับ • เสียงไทย</div>
+        </div>
+        <button class="logout-btn" onclick="logout()">ออก</button>
+      </div>
+      <div class="date-bar">
+        <div class="date-nav"><button onclick="changeDate(-1)">◀</button></div>
+        <input type="date" id="workDate" onchange="loadDay()" />
+        <div class="date-nav">
+          <button onclick="changeDate(1)">▶</button>
+          <button onclick="goToday()">📅</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="tabs">
+        <div class="tab active" data-tab="record" onclick="switchTab('record')">บันทึก</div>
+        <div class="tab" data-tab="list" onclick="switchTab('list')">รายการ</div>
+        <div class="tab" data-tab="summary" onclick="switchTab('summary')">สรุป</div>
+        <div class="tab" data-tab="manage" onclick="switchTab('manage')">ตั้งค่า</div>
+      </div>
+
+      <!-- RECORD -->
+      <div class="panel active" id="panel-record">
+        <button class="btn-summary" onclick="showDailySummary()">📋 สรุปงานวันนี้</button>
+        
+        <div class="card">
+          <h2>🔍 ค้นหาด้วยชื่อคนขับ หรือทะเบียนรถ</h2>
+          <div class="quick-search">
+            <input type="text" id="quickSearch" placeholder="ชื่อคนขับ หรือ 4 หลักท้าย..." oninput="quickFind()" />
+            <button type="button" class="btn btn-secondary" style="flex:0;min-width:auto;padding:9px 12px" onclick="quickFind()">ค้นหา</button>
+          </div>
+          <div id="quickResult" style="font-size:0.82rem;color:#64748b"></div>
+        </div>
+
+        <div class="card voice-section">
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:10px">
+            <button type="button" class="btn btn-primary" id="workModeBtn" onclick="toggleWorkMode()" style="flex:1;max-width:200px;padding:14px">▶ เริ่มงาน (ฟังอัตโนมัติ)</button>
+            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+          </div>
+          <div class="voice-status" id="voiceStatus">กด “เริ่มงาน” เพื่อสั่งด้วยเสียงโดยไม่ต้องกดไมค์ซ้ำ</div>
+          <div class="voice-hint">
+            <b>กด “เริ่มงาน”</b> แล้วพูดได้เลย ไม่ต้องกดไมค์ซ้ำ<br>
+            • บันทึก: “รถ 1234 คนขับสมชาย 3 เที่ยว” (ใส่แค่ 4 หลักท้าย)<br>
+            • ค้นหา: “ค้นหา รถ 1234” / “ค้นหา คนขับสมชาย”<br>
+            • แก้ไข: “แก้ไข รถ 1234 เป็น 4 เที่ยว” (ไม่ถามยืนยัน)<br>
+            • ลบ: “ลบ รถ 1234” (ลบล่าสุดวันนี้ อัตโนมัติ)<br>
+            • เพิ่มรถ: “เพิ่มรถ 9999” หรือ “เพิ่มรถ คนขับสมศักดิ์” <b>(ถามยืนยัน)</b>
+          </div>
+        </div>
+        <div class="card">
+          <h2>✏️ บันทึกด้วยมือ</h2>
+          <form id="entryForm" onsubmit="saveEntry(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>ทีม (ไม่บังคับ)</label>
+                <select id="teamSelect" onchange="onTeamChange()"><option value="">- ไม่ระบุ -</option></select>
+              </div>
+              <div class="form-group">
+                <label>ทะเบียน (4 หลักท้าย) *</label>
+                <select id="truckSelect" required onchange="onTruckChange()"></select>
+              </div>
+              <div class="form-group full">
+                <label>ชื่อคนขับ</label>
+                <input type="text" id="driver" placeholder="ชื่อคนขับ" />
+              </div>
+              <div class="form-group">
+                <label>จำนวนเที่ยว *</label>
+                <input type="number" id="trips" min="0.5" step="0.5" value="1" required />
+              </div>
+              <div class="form-group">
+                <label>น้ำมัน (ลิตร)</label>
+                <input type="number" id="fuel" min="0" step="0.1" placeholder="0" />
+              </div>
+              <div class="form-group full">
+                <label>สถานที่เอาไป</label>
+                <input type="text" id="location" placeholder="เช่น ไซต์บางนา" />
+              </div>
+              <div class="form-group">
+                <label>เวลาเริ่มงาน</label>
+                <input type="time" id="startTime" />
+              </div>
+              <div class="form-group">
+                <label>เวลาหยุดงาน</label>
+                <input type="time" id="endTime" />
+              </div>
+              <div class="form-group full">
+                <label>หมายเหตุ</label>
+                <textarea id="note" placeholder="เพิ่มเติม..."></textarea>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary" id="saveBtn">💾 บันทึก</button>
+              <button type="button" class="btn btn-secondary" onclick="resetForm()">ล้าง</button>
+            </div>
+            <input type="hidden" id="editId" />
+          </form>
+        </div>
+      </div>
+
+      <!-- LIST -->
+      <div class="panel" id="panel-list">
+        <button class="btn-summary" onclick="showDailySummary()">📋 สรุปงานวันนี้</button>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="ค้นหา รถ / ทีม / คนขับ / สถานที่..." oninput="renderList()" />
+        </div>
+        <div class="filter-chips" id="filterChips"></div>
+        <div class="record-list" id="recordList"></div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="panel" id="panel-summary">
+        <button class="btn-summary" onclick="showDailySummary()">📋 สรุปงานวันนี้ (ข้อความเต็ม)</button>
+        <div class="card">
+          <h2>📊 สรุปวันนี้</h2>
+          <div class="summary-grid" id="daySummary"></div>
+        </div>
+        <div class="card"><h2>🚛 สรุปตามรถ</h2><div id="truckSummary"></div></div>
+        <div class="card"><h2>👥 สรุปตามทีม</h2><div id="teamSummary"></div></div>
+        <div class="card">
+          <h2>📅 สรุป 30 วันล่าสุด</h2>
+          <div class="summary-grid" id="monthSummary"></div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-secondary" onclick="exportCSV()">⬇️ Export CSV</button>
+            <button class="btn btn-secondary" onclick="cleanOldData()">🧹 ลบข้อมูลเก่า</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MANAGE -->
+      <div class="panel" id="panel-manage">
+        <div class="card">
+          <h2>👥 จัดการทีม</h2>
+          <input type="text" id="newTeam" placeholder="ชื่อทีมใหม่" style="margin-bottom:8px" />
+          <button class="btn btn-primary" onclick="addTeam()" style="width:100%">+ เพิ่มทีม</button>
+          <div class="manage-list" id="teamList" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <h2>🚛 จัดการรถ + คนขับ + ทีม</h2>
+          <p style="font-size:0.78rem;color:#64748b;margin-bottom:8px">เพิ่มได้แค่ทะเบียน หรือแค่คนขับก็ได้ (ทีมไม่บังคับ) · แก้ไขได้ตลอด</p>
+          <div class="form-grid" style="margin-bottom:8px">
+            <div class="form-group full">
+              <label>ทะเบียนรถ (อย่างใดอย่างหนึ่ง)</label>
+              <input type="text" id="newTruckPlate" placeholder="ใส่แค่ 4 หลักท้าย เช่น 1234" />
+            </div>
+            <div class="form-group">
+              <label>ทีม</label>
+              <select id="newTruckTeam"></select>
+            </div>
+            <div class="form-group">
+              <label>คนขับ (อย่างใดอย่างหนึ่ง)</label>
+              <input type="text" id="newTruckDriver" placeholder="ชื่อคนขับ (ไม่บังคับถ้ามีทะเบียน)" />
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addTruck()" style="width:100%">+ เพิ่มรถ</button>
+          <div class="manage-list" id="truckList" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <h2>🔒 ความปลอดภัย</h2>
+          <button class="btn btn-secondary" onclick="changePin()" style="width:100%;margin-bottom:8px">เปลี่ยนรหัส PIN</button>
+          <button class="btn btn-danger" onclick="logout()" style="width:100%">ออกจากระบบ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="printArea" style="display:none"></div>
+  <div class="toast" id="toast"></div>
+
+  <!-- Edit Record Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h3>แก้ไขรายการ</h3>
+      <form id="editForm" onsubmit="updateEntry(event)">
+        <div class="form-grid">
+          <div class="form-group"><label>ทีม</label><select id="editTeam" required></select></div>
+          <div class="form-group"><label>ทะเบียนรถ</label><select id="editTruck" required></select></div>
+          <div class="form-group full"><label>ชื่อคนขับ</label><input type="text" id="editDriver" /></div>
+          <div class="form-group"><label>เที่ยว</label><input type="number" id="editTrips" min="0.5" step="0.5" required /></div>
+          <div class="form-group"><label>น้ำมัน (ลิตร)</label><input type="number" id="editFuel" min="0" step="0.1" /></div>
+          <div class="form-group full"><label>สถานที่</label><input type="text" id="editLocation" /></div>
+          <div class="form-group"><label>เริ่มงาน</label><input type="time" id="editStart" /></div>
+          <div class="form-group"><label>หยุดงาน</label><input type="time" id="editEnd" /></div>
+          <div class="form-group full"><label>หมายเหตุ</label><textarea id="editNote"></textarea></div>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary">บันทึกการแก้ไข</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">ยกเลิก</button>
+        </div>
+        <input type="hidden" id="editModalId" />
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Truck Modal -->
+  <div class="modal-overlay" id="editTruckModal">
+    <div class="modal">
+      <h3>แก้ไขข้อมูลรถ</h3>
+      <div class="form-grid">
+        <div class="form-group full"><label>ทะเบียนรถ</label><input type="text" id="editTruckPlate" /></div>
+        <div class="form-group"><label>ทีม</label><select id="editTruckTeamSel"></select></div>
+        <div class="form-group"><label>คนขับหลัก</label><input type="text" id="editTruckDriver" /></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveTruckEdit()">บันทึก</button>
+        <button class="btn btn-secondary" onclick="closeTruckModal()">ยกเลิก</button>
+      </div>
+      <input type="hidden" id="editTruckIdx" />
+    </div>
+  </div>
+
+  <!-- Daily Summary Modal -->
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal">
+      <h3>📋 สรุปงาน <span id="summaryDateLabel"></span></h3>
+      <div class="daily-report" id="dailyReportText"></div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-primary" onclick="copyDailyReport()">📋 คัดลอก</button>
+        <button class="btn btn-secondary" onclick="shareDailyReport()">แชร์</button>
+        <button class="btn btn-secondary" onclick="printDailyReport()">🖨️ พิมพ์/PDF</button>
+        <button class="btn btn-secondary" onclick="closeSummaryModal()">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Auth (multi-user) =====
+    const USERS_KEY = 'soilSales_users_v1', AUTH_KEY = 'soilSales_auth_v2';
+    let currentUser = null;
+    function simpleHash(s) { let h=0; for(let i=0;i<s.length;i++) h=((h<<5)-h)+s.charCodeAt(i)|0; return 'h'+Math.abs(h).toString(36); }
+    function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY)||'[]'); } catch { return []; } }
+    function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+    function switchLoginTab(tab) {
+      try {
+        const loginBtn = document.getElementById('tabLoginBtn');
+        const regBtn = document.getElementById('tabRegBtn');
+        const loginForm = document.getElementById('loginForm');
+        const setupForm = document.getElementById('setupForm');
+        const sub = document.getElementById('loginSub');
+        if (loginBtn) loginBtn.classList.toggle('active', tab==='login');
+        if (regBtn) regBtn.classList.toggle('active', tab==='register');
+        if (loginForm) loginForm.style.display = tab==='login' ? 'block' : 'none';
+        if (setupForm) setupForm.style.display = tab==='register' ? 'block' : 'none';
+        if (sub) sub.textContent = tab==='login' ? 'เลือกผู้ใช้แล้วใส่ PIN' : 'สร้างบัญชีผู้ใช้ใหม่';
+        if (tab==='login') refreshUserSelect();
+      } catch (e) { console.error('switchLoginTab', e); }
+    }
+    window.switchLoginTab = switchLoginTab;
+    function refreshUserSelect() {
+      const users = getUsers();
+      const sel = document.getElementById('loginUserSelect');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- เลือกผู้ใช้ --</option>' + users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+    }
+    function checkAuth() {
+      const raw = sessionStorage.getItem(AUTH_KEY);
+      if (raw) {
+        try {
+          const s = JSON.parse(raw);
+          const user = getUsers().find(u=>u.id===s.id);
+          if (user) { currentUser = user; showApp(); return; }
+        } catch(e) {}
+      }
+      if (getUsers().length === 0) {
+        switchLoginTab('register');
+        document.getElementById('loginSub').textContent = 'สร้างผู้ใช้คนแรก';
+      } else {
+        refreshUserSelect();
+        switchLoginTab('login');
+      }
+    }
+    function setupPin() {
+      const name = (document.getElementById('regName')||{}).value;
+      const p1 = document.getElementById('newPin').value.trim();
+      const p2 = document.getElementById('confirmPin').value.trim();
+      const err = document.getElementById('setupError');
+      const uname = (name||'').trim();
+      if (!uname || uname.length < 2) { err.textContent = 'ใส่ชื่ออย่างน้อย 2 ตัวอักษร'; return; }
+      if (!/^\d{4,6}$/.test(p1)) { err.textContent = 'PIN ต้องเป็นตัวเลข 4-6 หลัก'; return; }
+      if (p1 !== p2) { err.textContent = 'PIN ไม่ตรงกัน'; return; }
+      const users = getUsers();
+      if (users.some(u=>u.name===uname)) { err.textContent = 'มีชื่อนี้แล้ว'; return; }
+      const user = { id: 'u'+Date.now(), name: uname, pinHash: simpleHash(p1), createdAt: new Date().toISOString() };
+      users.push(user); saveUsers(users);
+      currentUser = user;
+      sessionStorage.setItem(AUTH_KEY, JSON.stringify({ id: user.id, name: user.name }));
+      err.textContent = '';
+      showApp();
+      toast('สร้างผู้ใช้และเข้าสู่ระบบแล้ว');
+    }
+    function handleLogin() {
+      const uid = (document.getElementById('loginUserSelect')||{}).value;
+      const pin = document.getElementById('pinInput').value.trim();
+      const err = document.getElementById('loginError');
+      if (!uid) { err.textContent = 'เลือกผู้ใช้'; return; }
+      if (!pin) { err.textContent = 'ใส่ PIN'; return; }
+      const user = getUsers().find(u=>u.id===uid);
+      if (!user || user.pinHash !== simpleHash(pin)) {
+        err.textContent = 'PIN ไม่ถูกต้อง';
+        document.getElementById('pinInput').value = '';
+        return;
+      }
+      currentUser = user;
+      sessionStorage.setItem(AUTH_KEY, JSON.stringify({ id: user.id, name: user.name }));
+      document.getElementById('pinInput').value = '';
+      err.textContent = '';
+      showApp();
+    }
+    function logout() {
+      currentUser = null;
+      sessionStorage.removeItem(AUTH_KEY);
+      document.getElementById('appRoot').classList.remove('show');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      refreshUserSelect();
+      switchLoginTab('login');
+    }
+    function changePin() {
+      if (!currentUser) return;
+      const oldP = prompt('PIN ปัจจุบัน'); if (oldP===null) return;
+      if (simpleHash(oldP) !== currentUser.pinHash) { toast('PIN ไม่ถูกต้อง'); return; }
+      const n = prompt('PIN ใหม่ (4-6 หลัก)'); if (n===null || !/^\d{4,6}$/.test(n)) { toast('PIN ไม่ถูกต้อง'); return; }
+      const c = prompt('ยืนยัน PIN ใหม่'); if (c!==n) { toast('PIN ไม่ตรงกัน'); return; }
+      const users = getUsers();
+      const idx = users.findIndex(u=>u.id===currentUser.id);
+      if (idx>=0) { users[idx].pinHash = simpleHash(n); saveUsers(users); currentUser = users[idx]; toast('เปลี่ยน PIN เรียบร้อย'); }
+    }
+    function showApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appRoot').classList.add('show');
+      const badge = document.getElementById('currentUserBadge');
+      if (badge) badge.textContent = currentUser ? currentUser.name : '—';
+      initApp();
+    }
+
+    // ===== Data =====
+    const STORAGE_KEY='soilSales_v2', TEAMS_KEY='soilSales_teams', TRUCKS_KEY='soilSales_trucks_v2', RETENTION_DAYS=35;
+    let currentDate=todayStr(), recognition=null, isListening=false, filterTeam='all', appInited=false, listenTimer=null, silenceTimer=null;
+
+    function todayStr() { return new Date().toISOString().slice(0,10); }
+    function loadAll() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); } catch { return {}; } }
+    function saveAll(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+    function getDayRecords(d) { return loadAll()[d]||[]; }
+    function setDayRecords(d, r) { const a=loadAll(); a[d]=r; saveAll(a); }
+    function getTeams() {
+      try { const t=JSON.parse(localStorage.getItem(TEAMS_KEY)||'[]'); return t.length?t:['ทีม ก','ทีม ข','ทีมแดง','ทีมน้ำเงิน']; }
+      catch { return ['ทีม ก','ทีม ข']; }
+    }
+    function saveTeams(t) { localStorage.setItem(TEAMS_KEY, JSON.stringify(t)); }
+
+    // Trucks as objects: { plate, team, driver }
+    function getTrucks() {
+      try {
+        let t = JSON.parse(localStorage.getItem(TRUCKS_KEY) || 'null');
+        if (!t) {
+          // migrate old string array if exists
+          const old = JSON.parse(localStorage.getItem('soilSales_trucks') || '[]');
+          if (old.length && typeof old[0] === 'string') {
+            t = old.map(p => ({ plate: p, team: '', driver: '' }));
+          } else {
+            t = [
+              { plate: '1234', team: 'ทีมแดง', driver: '' },
+              { plate: '5678', team: 'ทีม ก', driver: '' },
+              { plate: '3456', team: 'ทีมน้ำเงิน', driver: '' }
+            ];
+          }
+          saveTrucks(t);
+        }
+        return t;
+      } catch { return [{ plate: '1234', team: '', driver: '' }]; }
+    }
+    function saveTrucks(t) { localStorage.setItem(TRUCKS_KEY, JSON.stringify(t)); }
+
+    function cleanOldData() {
+      const all=loadAll(), cutoff=new Date(); cutoff.setDate(cutoff.getDate()-RETENTION_DAYS);
+      const cs=cutoff.toISOString().slice(0,10); let n=0;
+      Object.keys(all).forEach(k => { if(k<cs){ delete all[k]; n++; } });
+      saveAll(all); toast(n?`ลบข้อมูลเก่า ${n} วัน`:'ไม่มีข้อมูลเก่า'); renderSummary();
+    }
+
+    function toast(m) { const e=document.getElementById('toast'); e.textContent=m; e.classList.add('show'); setTimeout(()=>e.classList.remove('show'),2500); }
+
+    // ===== UI =====
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+      document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+name));
+      if(name==='list') renderList();
+      if(name==='summary') renderSummary();
+      if(name==='manage') renderManage();
+    }
+    function changeDate(d) { const dt=new Date(currentDate+'T12:00:00'); dt.setDate(dt.getDate()+d); currentDate=dt.toISOString().slice(0,10); document.getElementById('workDate').value=currentDate; loadDay(); }
+    function goToday() { currentDate=todayStr(); document.getElementById('workDate').value=currentDate; loadDay(); }
+    function loadDay() { currentDate=document.getElementById('workDate').value||todayStr(); renderList(); renderSummary(); updateSelects(); }
+
+    function updateSelects(selectedTeam) {
+      const teams=getTeams(), trucks=getTrucks();
+      const teamSel=document.getElementById('teamSelect');
+      const truckSel=document.getElementById('truckSelect');
+      const curTeam = selectedTeam || teamSel.value;
+      teamSel.innerHTML = '<option value="">- ไม่ระบุ -</option>' + teams.map(t=>`<option value="${t}">${t}</option>`).join('');
+      if (curTeam && teams.includes(curTeam)) teamSel.value = curTeam;
+
+      // Filter trucks by selected team (show team trucks first, then others)
+      const team = teamSel.value;
+      let list = trucks.filter(t => t.team === team);
+      const others = trucks.filter(t => t.team !== team);
+      if (list.length === 0) list = trucks;
+      else list = [...list, ...others];
+
+      truckSel.innerHTML = list.map(t => {
+        const label = t.driver ? `${t.plate} (${t.driver})` : t.plate;
+        return `<option value="${t.plate}" data-team="${t.team||''}" data-driver="${t.driver||''}">${label}</option>`;
+      }).join('') || '<option value="">เพิ่มรถก่อน</option>';
+
+      // edit modal selects
+      document.getElementById('editTeam').innerHTML = teams.map(t=>`<option value="${t}">${t}</option>`).join('');
+      document.getElementById('editTruck').innerHTML = trucks.map(t=>`<option value="${t.plate}">${t.plate}${t.driver?' ('+t.driver+')':''}</option>`).join('');
+      document.getElementById('newTruckTeam').innerHTML = '<option value="">- ไม่ระบุ -</option>' + teams.map(t=>`<option value="${t}">${t}</option>`).join('');
+      document.getElementById('editTruckTeamSel').innerHTML = '<option value="">- ไม่ระบุ -</option>' + teams.map(t=>`<option value="${t}">${t}</option>`).join('');
+    }
+
+    function onTeamChange() {
+      updateSelects(document.getElementById('teamSelect').value);
+      // auto select first truck of team if available
+      const trucks = getTrucks().filter(t => t.team === document.getElementById('teamSelect').value);
+      if (trucks.length) {
+        document.getElementById('truckSelect').value = trucks[0].plate;
+        onTruckChange();
+      }
+    }
+
+    function onTruckChange() {
+      const sel = document.getElementById('truckSelect');
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt) return;
+      const team = opt.dataset.team || '';
+      const driver = opt.dataset.driver || '';
+      if (team) document.getElementById('teamSelect').value = team;
+      if (driver) document.getElementById('driver').value = driver;
+    }
+
+    // ===== CRUD =====
+    
+    function addHistory(rec, action, changes) {
+      if (!rec.history) rec.history = [];
+      rec.history.push({ action: action, changes: changes||{}, at: new Date().toISOString(), by: currentUser ? currentUser.name : 'ระบบ', time: new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) });
+      if (rec.history.length > 30) rec.history = rec.history.slice(-30);
+    }
+
+    function saveEntry(e) {
+      e.preventDefault();
+      const team=document.getElementById('teamSelect').value;
+      const truck=document.getElementById('truckSelect').value;
+      const driver=document.getElementById('driver').value.trim();
+      const trips=parseFloat(document.getElementById('trips').value)||0;
+      const fuel=parseFloat(document.getElementById('fuel').value)||0;
+      const location=document.getElementById('location').value.trim();
+      const startTime=document.getElementById('startTime').value;
+      const endTime=document.getElementById('endTime').value;
+      const note=document.getElementById('note').value.trim();
+      const editId=document.getElementById('editId').value;
+      if (!truck||trips<=0) { toast('กรุณากรอกทะเบียนรถ (หรือคนขับ) และจำนวนเที่ยว'); return; }
+      if (!team) team = '-';
+
+      let records=getDayRecords(currentDate);
+      const now=new Date(), timeStr=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+
+      if (editId) {
+        const idx=records.findIndex(r=>r.id===editId);
+        if (idx>=0) {
+          const old = records[idx];
+          const changes = {};
+          if (old.team !== team) changes.ทีม = old.team+'→'+team;
+          if (old.truck !== truck) changes.รถ = old.truck+'→'+truck;
+          if ((old.driver||'') !== driver) changes.คนขับ = driver||'-';
+          if (old.trips !== trips) changes.เที่ยว = old.trips+'→'+trips;
+          records[idx]={...old, team, truck, driver, trips, fuel, location, startTime, endTime, note, updatedAt:now.toISOString(), updatedBy: currentUser?currentUser.name:''};
+          addHistory(records[idx], 'แก้ไข', changes);
+        }
+        document.getElementById('editId').value='';
+        document.getElementById('saveBtn').textContent='💾 บันทึก';
+        toast('แก้ไขและลงประวัติแล้ว');
+      } else {
+        const rec = { id:'r'+Date.now()+Math.random().toString(36).slice(2,6), team, truck, driver, trips, fuel, location, startTime, endTime, note, recordedAt:now.toISOString(), time:timeStr, createdBy: currentUser?currentUser.name:'', history:[] };
+        addHistory(rec, 'สร้างรายการ', {ทีม:team, รถ:truck, เที่ยว:trips});
+        records.push(rec);
+        toast('บันทึกและลงประวัติแล้ว ✓');
+      }
+      // update truck's default driver/team if empty
+      const trucks=getTrucks();
+      const ti=trucks.findIndex(t=>t.plate===truck);
+      if (ti>=0) {
+        if (driver && !trucks[ti].driver) trucks[ti].driver=driver;
+        if (team && !trucks[ti].team) trucks[ti].team=team;
+        saveTrucks(trucks);
+      }
+      setDayRecords(currentDate, records);
+      resetForm(); renderList(); renderSummary();
+    }
+
+    function resetForm() {
+      document.getElementById('entryForm').reset();
+      document.getElementById('trips').value=1;
+      document.getElementById('editId').value='';
+      document.getElementById('saveBtn').textContent='💾 บันทึก';
+      updateSelects();
+    }
+
+    function deleteEntry(id) {
+      if (!confirm('ลบรายการนี้?')) return;
+      setDayRecords(currentDate, getDayRecords(currentDate).filter(r=>r.id!==id));
+      renderList(); renderSummary(); toast('ลบแล้ว');
+    }
+
+    function openEdit(id) {
+      const rec=getDayRecords(currentDate).find(r=>r.id===id); if(!rec) return;
+      updateSelects();
+      document.getElementById('editModalId').value=id;
+      document.getElementById('editTeam').value=rec.team;
+      document.getElementById('editTruck').value=rec.truck;
+      document.getElementById('editDriver').value=rec.driver||'';
+      document.getElementById('editTrips').value=rec.trips;
+      document.getElementById('editFuel').value=rec.fuel||'';
+      document.getElementById('editLocation').value=rec.location||'';
+      document.getElementById('editStart').value=rec.startTime||'';
+      document.getElementById('editEnd').value=rec.endTime||'';
+      document.getElementById('editNote').value=rec.note||'';
+      document.getElementById('editModal').classList.add('show');
+    }
+    function closeModal() { document.getElementById('editModal').classList.remove('show'); }
+
+    function updateEntry(e) {
+      e.preventDefault();
+      const id=document.getElementById('editModalId').value;
+      let records=getDayRecords(currentDate);
+      const idx=records.findIndex(r=>r.id===id); if(idx<0) return;
+      const old = records[idx];
+      const team = document.getElementById('editTeam').value;
+      const truck = document.getElementById('editTruck').value;
+      const driver = document.getElementById('editDriver').value.trim();
+      const trips = parseFloat(document.getElementById('editTrips').value)||0;
+      const fuel = parseFloat(document.getElementById('editFuel').value)||0;
+      const location = document.getElementById('editLocation').value.trim();
+      const startTime = document.getElementById('editStart').value;
+      const endTime = document.getElementById('editEnd').value;
+      const note = document.getElementById('editNote').value.trim();
+      const changes = {};
+      if (old.team !== team) changes.ทีม = old.team+'→'+team;
+      if (old.truck !== truck) changes.รถ = old.truck+'→'+truck;
+      if ((old.driver||'') !== driver) changes.คนขับ = driver||'-';
+      if (old.trips !== trips) changes.เที่ยว = old.trips+'→'+trips;
+      records[idx]={...old, team, truck, driver, trips, fuel, location, startTime, endTime, note, updatedAt: new Date().toISOString(), updatedBy: currentUser?currentUser.name:''};
+      addHistory(records[idx], 'แก้ไข', changes);
+      setDayRecords(currentDate, records);
+      closeModal(); renderList(); renderSummary(); toast('แก้ไขและลงประวัติแล้ว');
+    }
+
+    // ===== Daily Summary =====
+    function buildDailyReport() {
+      const records=getDayRecords(currentDate);
+      const d=new Date(currentDate+'T12:00:00');
+      const dateLabel=d.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      let totalTrips=0, totalFuel=0;
+      const byTeam={}, byTruck={};
+      records.forEach(r=>{
+        totalTrips+=r.trips||0; totalFuel+=r.fuel||0;
+        if(!byTeam[r.team]) byTeam[r.team]={trips:0,fuel:0,trucks:new Set()};
+        byTeam[r.team].trips+=r.trips||0; byTeam[r.team].fuel+=r.fuel||0; byTeam[r.team].trucks.add(r.truck);
+        if(!byTruck[r.truck]) byTruck[r.truck]={trips:0,fuel:0,team:r.team,driver:r.driver||'',locs:[]};
+        byTruck[r.truck].trips+=r.trips||0; byTruck[r.truck].fuel+=r.fuel||0;
+        if(r.driver) byTruck[r.truck].driver=r.driver;
+        if(r.location) byTruck[r.truck].locs.push(r.location);
+      });
+      let text=`📋 สรุปงานขายดิน\nวันที่: ${dateLabel}\n════════════════════════════════\n`;
+      text+=`🚛 เที่ยวรวม: ${totalTrips} เที่ยว\n📝 รายการ: ${records.length}\n⛽ น้ำมัน: ${totalFuel||0} ลิตร\n👥 ทีม: ${Object.keys(byTeam).length} | 🚚 รถ: ${Object.keys(byTruck).length} คัน\n\n`;
+      text+=`── ตามทีม ──\n`;
+      Object.entries(byTeam).sort((a,b)=>b[1].trips-a[1].trips).forEach(([team,d])=>{
+        text+=`• ${team}: ${d.trips} เที่ยว | ${d.trucks.size} คัน${d.fuel?` | น้ำมัน ${d.fuel}L`:''}\n`;
+      });
+      text+=`\n── ตามรถ ──\n`;
+      Object.entries(byTruck).sort((a,b)=>b[1].trips-a[1].trips).forEach(([truck,d])=>{
+        text+=`• ${truck}${d.driver?' ('+d.driver+')':''} [${d.team}]: ${d.trips} เที่ยว`;
+        if(d.fuel) text+=` | น้ำมัน ${d.fuel}L`;
+        if(d.locs.length) text+=`\n  สถานที่: ${[...new Set(d.locs)].join(', ')}`;
+        text+=`\n`;
+      });
+      if(records.length){
+        text+=`\n── รายละเอียด ──\n`;
+        records.sort((a,b)=>(a.time||'').localeCompare(b.time||'')).forEach((r,i)=>{
+          text+=`${i+1}. [${r.time||'-'}] ${r.team} | ${r.truck}${r.driver?' / '+r.driver:''} | ${r.trips} เที่ยว`;
+          if(r.location) text+=` → ${r.location}`;
+          if(r.fuel) text+=` | ${r.fuel}L`;
+          if(r.startTime||r.endTime) text+=` | ${r.startTime||'?'}–${r.endTime||'?'}`;
+          text+=`\n`;
+        });
+      } else text+=`\n(ยังไม่มีรายการ)\n`;
+      text+=`\n════════════════════════════════\nผู้จัดทำ: ${(currentUser?currentUser.name:'-')}\nสร้างจากแอปบันทึกขายดิน · ${new Date().toLocaleString('th-TH')}`;
+      return {text, dateLabel};
+    }
+    function showDailySummary() {
+      const {text,dateLabel}=buildDailyReport();
+      document.getElementById('summaryDateLabel').textContent=dateLabel;
+      document.getElementById('dailyReportText').textContent=text;
+      document.getElementById('summaryModal').classList.add('show');
+    }
+    function closeSummaryModal() { document.getElementById('summaryModal').classList.remove('show'); }
+    function copyDailyReport() {
+      const t=document.getElementById('dailyReportText').textContent;
+      navigator.clipboard.writeText(t).then(()=>toast('คัดลอกแล้ว')).catch(()=>{ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('คัดลอกแล้ว'); });
+    }
+    async function shareDailyReport() {
+      const t=document.getElementById('dailyReportText').textContent;
+      if(navigator.share){ try{ await navigator.share({title:'สรุปงานขายดิน',text:t}); }catch(e){} }
+      else copyDailyReport();
+    }
+
+    // ===== Render =====
+    function renderList() {
+      const list=document.getElementById('recordList');
+      let records=getDayRecords(currentDate);
+      const q=(document.getElementById('searchInput')?.value||'').toLowerCase().trim();
+      if(filterTeam!=='all') records=records.filter(r=>r.team===filterTeam);
+      if(q) records=records.filter(r=>[r.team,r.truck,r.driver,r.location,r.note].some(x=>(x||'').toLowerCase().includes(q)));
+      const chips=document.getElementById('filterChips');
+      const teams=[...new Set(getDayRecords(currentDate).map(r=>r.team))];
+      chips.innerHTML=`<div class="chip ${filterTeam==='all'?'active':''}" onclick="filterTeam='all';renderList()">ทั้งหมด</div>`+
+        teams.map(t=>`<div class="chip ${filterTeam===t?'active':''}" onclick="filterTeam='${t}';renderList()">${t}</div>`).join('');
+      if(!records.length){ list.innerHTML=`<div class="empty">ยังไม่มีรายการในวันนี้</div>`; return; }
+      const groups={};
+      records.forEach(r=>{ const k=r.team+'|||'+r.truck; if(!groups[k]) groups[k]=[]; groups[k].push(r); });
+      let html='';
+      Object.keys(groups).sort().forEach(key=>{
+        const [team,truck]=key.split('|||');
+        const items=groups[key];
+        const total=items.reduce((s,r)=>s+(r.trips||0),0);
+        const driver=items.find(r=>r.driver)?.driver||'';
+        html+=`<div class="group-header"><span>${team} • ${truck}${driver?' / '+driver:''}</span><span>${total} เที่ยว</span></div>`;
+        items.sort((a,b)=>(b.recordedAt||'').localeCompare(a.recordedAt||'')).forEach(r=>{
+          html+=`<div class="record-item">
+            <div class="top"><div class="truck">${r.truck}${r.driver?' · '+r.driver:''}</div><div class="team">${r.team}</div></div>
+            <div class="meta">
+              <div>🕐 ${r.time||'-'}${r.updatedAt?' (แก้ไขแล้ว)':''}</div>
+              <div>🚛 <strong>${r.trips}</strong> เที่ยว${r.fuel?` • ⛽ ${r.fuel}L`:''}</div>
+              ${r.location?`<div>📍 ${r.location}</div>`:''}
+              ${(r.startTime||r.endTime)?`<div>⏰ ${r.startTime||'?'} – ${r.endTime||'?'}</div>`:''}
+              ${r.note?`<div>📝 ${r.note}</div>`:''}
+            </div>
+            <div class="actions">
+              <button style="background:#e0f2f1;color:#0f766e" onclick="openEdit('${r.id}')">แก้ไข</button>
+              <button style="background:#fee2e2;color:#dc2626" onclick="deleteEntry('${r.id}')">ลบ</button>
+            </div>
+          </div>`;
+        });
+      });
+      list.innerHTML=html;
+    }
+
+    function renderSummary() {
+      const records=getDayRecords(currentDate);
+      const totalTrips=records.reduce((s,r)=>s+(r.trips||0),0);
+      const totalFuel=records.reduce((s,r)=>s+(r.fuel||0),0);
+      document.getElementById('daySummary').innerHTML=`
+        <div class="stat"><div class="num">${totalTrips}</div><div class="lbl">เที่ยวรวม</div></div>
+        <div class="stat"><div class="num">${records.length}</div><div class="lbl">รายการ</div></div>
+        <div class="stat"><div class="num">${new Set(records.map(r=>r.truck)).size}</div><div class="lbl">คันรถ</div></div>
+        <div class="stat"><div class="num">${totalFuel||'-'}</div><div class="lbl">ลิตรน้ำมัน</div></div>`;
+      const byTruck={};
+      records.forEach(r=>{ if(!byTruck[r.truck]) byTruck[r.truck]={trips:0,fuel:0,team:r.team,driver:r.driver||''}; byTruck[r.truck].trips+=r.trips||0; byTruck[r.truck].fuel+=r.fuel||0; if(r.driver) byTruck[r.truck].driver=r.driver; });
+      document.getElementById('truckSummary').innerHTML=Object.keys(byTruck).length
+        ? Object.entries(byTruck).sort((a,b)=>b[1].trips-a[1].trips).map(([truck,d])=>
+          `<div class="manage-item"><div class="info"><strong>${truck}</strong><small>${d.team}${d.driver?' · '+d.driver:''}</small></div><span>${d.trips} เที่ยว${d.fuel?` · ${d.fuel}L`:''}</span></div>`).join('')
+        : '<div class="empty">ยังไม่มีข้อมูล</div>';
+      const byTeam={};
+      records.forEach(r=>{ if(!byTeam[r.team]) byTeam[r.team]={trips:0,fuel:0,trucks:new Set()}; byTeam[r.team].trips+=r.trips||0; byTeam[r.team].fuel+=r.fuel||0; byTeam[r.team].trucks.add(r.truck); });
+      document.getElementById('teamSummary').innerHTML=Object.keys(byTeam).length
+        ? Object.entries(byTeam).sort((a,b)=>b[1].trips-a[1].trips).map(([team,d])=>
+          `<div class="manage-item"><div class="info"><strong>${team}</strong><small>${d.trucks.size} คัน</small></div><span>${d.trips} เที่ยว${d.fuel?` · ${d.fuel}L`:''}</span></div>`).join('')
+        : '<div class="empty">ยังไม่มีข้อมูล</div>';
+      const all=loadAll(), days=Object.keys(all).sort().reverse().slice(0,30);
+      let mT=0,mR=0,mF=0; days.forEach(d=>(all[d]||[]).forEach(r=>{mT+=r.trips||0;mF+=r.fuel||0;mR++;}));
+      document.getElementById('monthSummary').innerHTML=`
+        <div class="stat"><div class="num">${mT}</div><div class="lbl">เที่ยว (30 วัน)</div></div>
+        <div class="stat"><div class="num">${mR}</div><div class="lbl">รายการ</div></div>
+        <div class="stat"><div class="num">${days.length}</div><div class="lbl">วันที่มีข้อมูล</div></div>
+        <div class="stat"><div class="num">${mF||'-'}</div><div class="lbl">ลิตรน้ำมัน</div></div>`;
+    }
+
+    function renderManage() {
+      const teams=getTeams(), trucks=getTrucks();
+      document.getElementById('teamList').innerHTML=teams.map((t,i)=>
+        `<div class="manage-item"><span>${t}</span><button class="btn btn-danger" style="flex:0;padding:6px 12px" onclick="removeTeam(${i})">ลบ</button></div>`
+      ).join('')||'<div class="empty">ยังไม่มีทีม</div>';
+      document.getElementById('truckList').innerHTML=trucks.map((t,i)=>
+        `<div class="manage-item">
+          <div class="info"><strong>${t.plate}</strong><small>${t.team||'ไม่ระบุทีม'}${t.driver?' · '+t.driver:''}</small></div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-secondary" style="flex:0;padding:6px 10px;min-width:auto" onclick="openTruckEdit(${i})">แก้ไข</button>
+            <button class="btn btn-danger" style="flex:0;padding:6px 10px;min-width:auto" onclick="removeTruck(${i})">ลบ</button>
+          </div>
+        </div>`
+      ).join('')||'<div class="empty">ยังไม่มีรถ</div>';
+    }
+
+    function addTeam() {
+      const name=document.getElementById('newTeam').value.trim(); if(!name) return toast('ใส่ชื่อทีม');
+      const teams=getTeams(); if(teams.includes(name)) return toast('มีทีมนี้แล้ว');
+      teams.push(name); saveTeams(teams); document.getElementById('newTeam').value=''; renderManage(); updateSelects(); toast('เพิ่มทีมแล้ว');
+    }
+    function removeTeam(i) { if(!confirm('ลบทีมนี้?')) return; const t=getTeams(); t.splice(i,1); saveTeams(t); renderManage(); updateSelects(); }
+
+    function addTruck() {
+      let plate=document.getElementById('newTruckPlate').value.trim();
+      const team=document.getElementById('newTruckTeam').value;
+      const driver=document.getElementById('newTruckDriver').value.trim();
+      if(!plate && !driver) return toast('ใส่ทะเบียน (4 หลัก) หรือชื่อคนขับอย่างน้อยอย่างใดอย่างหนึ่ง');
+      if(plate) {
+        const dig = plate.replace(/\D/g,'');
+        if(dig.length >= 4) plate = dig.slice(-4);
+        else if(dig.length > 0) plate = dig;
+      }
+      if(!plate && driver) plate = 'คนขับ-' + driver;
+      const trucks=getTrucks();
+      if(trucks.some(t=>t.plate===plate || (last4(t.plate)===last4(plate) && last4(plate)))) return toast('มีรถนี้แล้ว');
+      if(driver && trucks.some(t=>t.driver===driver && t.plate===plate)) return toast('มีข้อมูลนี้แล้ว');
+      trucks.push({plate, team: team||'', driver});
+      saveTrucks(trucks);
+      document.getElementById('newTruckPlate').value='';
+      document.getElementById('newTruckDriver').value='';
+      renderManage(); updateSelects(); updateDriverList && updateDriverList(); toast('เพิ่มรถแล้ว');
+    }
+    function removeTruck(i) { if(!confirm('ลบรถนี้?')) return; const t=getTrucks(); t.splice(i,1); saveTrucks(t); renderManage(); updateSelects(); }
+
+    function openTruckEdit(i) {
+      const t=getTrucks()[i]; if(!t) return;
+      document.getElementById('editTruckIdx').value=i;
+      document.getElementById('editTruckPlate').value=t.plate;
+      document.getElementById('editTruckTeamSel').value=t.team||'';
+      document.getElementById('editTruckDriver').value=t.driver||'';
+      document.getElementById('editTruckModal').classList.add('show');
+    }
+    function closeTruckModal() { document.getElementById('editTruckModal').classList.remove('show'); }
+    function saveTruckEdit() {
+      const i=parseInt(document.getElementById('editTruckIdx').value,10);
+      const trucks=getTrucks();
+      if(i<0||i>=trucks.length) return;
+      let newPlate=document.getElementById('editTruckPlate').value.trim();
+      const newDriver=document.getElementById('editTruckDriver').value.trim();
+      if(!newPlate && !newDriver) return toast('ใส่ทะเบียนหรือคนขับอย่างน้อยอย่างใดอย่างหนึ่ง');
+      if(!newPlate && newDriver) newPlate = 'คนขับ-' + newDriver;
+      trucks[i]={ plate:newPlate, team:document.getElementById('editTruckTeamSel').value, driver:newDriver };
+      saveTrucks(trucks); closeTruckModal(); renderManage(); updateSelects(); toast('แก้ไขรถเรียบร้อย');
+    }
+
+    // ===== Voice + Work Mode (hands-free) =====
+    let workMode = false;
+    let finalTranscript = '';
+
+    function initVoice() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        document.getElementById('voiceStatus').textContent = 'ไม่รองรับเสียง (ใช้ Chrome)';
+        document.getElementById('voiceBtn').disabled = true;
+        const wb = document.getElementById('workModeBtn');
+        if (wb) wb.disabled = true;
+        return;
+      }
+      recognition = new SR();
+      recognition.lang = 'th-TH';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 3;
+
+      recognition.onstart = () => {
+        isListening = true;
+        finalTranscript = '';
+        document.getElementById('voiceBtn').classList.add('listening');
+        document.getElementById('voiceStatus').textContent = workMode
+          ? 'โหมดเริ่มงาน · กำลังฟัง... พูดคำสั่งได้เลย'
+          : 'กำลังฟัง... พูดได้เลย';
+        clearTimeout(listenTimer);
+        listenTimer = setTimeout(() => { if (isListening) try { recognition.stop(); } catch(e){} }, workMode ? 60000 : 20000);
+      };
+      recognition.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalTranscript += t + ' ';
+          else interim += t;
+        }
+        document.getElementById('voiceStatus').textContent = 'ได้ยิน: ' + (finalTranscript + interim).trim();
+        clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => { if (isListening) try { recognition.stop(); } catch(e){} }, workMode ? 4000 : 3500);
+      };
+      recognition.onend = () => {
+        isListening = false;
+        document.getElementById('voiceBtn').classList.remove('listening');
+        clearTimeout(listenTimer);
+        clearTimeout(silenceTimer);
+        const text = (finalTranscript || '').trim();
+        if (text) {
+          document.getElementById('voiceStatus').textContent = 'ได้ยิน: ' + text;
+          parseVoice(text);
+        } else if (workMode) {
+          document.getElementById('voiceStatus').textContent = 'โหมดเริ่มงาน · รอคำสั่ง...';
+          setTimeout(() => { if (workMode && !isListening) startListenSafe(); }, 400);
+        } else {
+          document.getElementById('voiceStatus').textContent = 'กด “เริ่มงาน” หรือกดไมค์เพื่อพูด';
+        }
+      };
+      recognition.onerror = (e) => {
+        isListening = false;
+        document.getElementById('voiceBtn').classList.remove('listening');
+        clearTimeout(listenTimer);
+        clearTimeout(silenceTimer);
+        const msg = e.error === 'no-speech' ? 'ไม่ได้ยินเสียง' : ('ผิดพลาด: ' + e.error);
+        document.getElementById('voiceStatus').textContent = msg;
+        if (workMode && e.error !== 'aborted') {
+          setTimeout(() => { if (workMode && !isListening) startListenSafe(); }, 800);
+        }
+      };
+    }
+
+    function startListenSafe() {
+      if (!recognition || isListening) return;
+      try { recognition.start(); } catch (e) {
+        setTimeout(() => { try { recognition.start(); } catch (e2) {} }, 300);
+      }
+    }
+
+    function toggleWorkMode() {
+      if (!recognition) return toast('ไม่รองรับเสียง');
+      workMode = !workMode;
+      const btn = document.getElementById('workModeBtn');
+      if (workMode) {
+        btn.textContent = '⏹ หยุดโหมดเริ่มงาน';
+        btn.style.background = '#dc2626';
+        document.getElementById('voiceStatus').textContent = 'โหมดเริ่มงานเปิดแล้ว · พูดคำสั่งได้เลย';
+        toast('โหมดเริ่มงาน: สั่งด้วยเสียงได้โดยไม่ต้องกดไมค์');
+        startListenSafe();
+      } else {
+        btn.textContent = '▶ เริ่มงาน (ฟังอัตโนมัติ)';
+        btn.style.background = '';
+        if (isListening) try { recognition.stop(); } catch (e) {}
+        document.getElementById('voiceStatus').textContent = 'หยุดโหมดเริ่มงานแล้ว';
+        toast('หยุดโหมดเริ่มงาน');
+      }
+    }
+
+    function toggleVoice() {
+      if (!recognition) return toast('ไม่รองรับเสียง');
+      if (isListening) {
+        if (workMode) { workMode = false; const btn = document.getElementById('workModeBtn'); if (btn) { btn.textContent = '▶ เริ่มงาน (ฟังอัตโนมัติ)'; btn.style.background = ''; } }
+        try { recognition.stop(); } catch (e) {}
+        return;
+      }
+      startListenSafe();
+    }
+
+    function resumeWorkListen() {
+      if (workMode) setTimeout(() => { if (workMode && !isListening) startListenSafe(); }, 600);
+    }
+
+    function normalizePlate(p) {
+      return (p || '').replace(/\s|-/g, '');
+    }
+    function last4(p) {
+      const d = normalizePlate(p).replace(/[^0-9]/g, '');
+      return d.length >= 4 ? d.slice(-4) : d;
+    }
+    function matchPlate(input, stored) {
+      if (!input || !stored) return false;
+      const a = normalizePlate(input), b = normalizePlate(stored);
+      if (a === b) return true;
+      if (a.length <= 4 && last4(stored) === a) return true;
+      if (b.length <= 4 && last4(input) === b) return true;
+      if (last4(input) && last4(input) === last4(stored) && last4(input).length === 4) return true;
+      return b.includes(a) || a.includes(b);
+    }
+    function extractPlate(raw) {
+      const trucks = getTrucks();
+      // หา 4 หลักท้ายในประโยคก่อน
+      const m4 = raw.match(/(?:รถ|ทะเบียน)?\s*(\d{4})\b/);
+      if (m4) {
+        const dig = m4[1];
+        const f = trucks.find(t => last4(t.plate) === dig || normalizePlate(t.plate) === dig);
+        return f ? f.plate : dig;
+      }
+      // จับทะเบียนแบบมีตัวอักษร (รองรับของเก่า)
+      const m = raw.match(/(?:รถ|ทะเบียน)?\s*([ก-ฮ]{1,3}\s*\d{1,4}|\d{1,2}[- ]?\d{4})/i);
+      if (m) {
+        const c = m[1].replace(/\s+/g, ' ').trim();
+        const f = trucks.find(t => matchPlate(c, t.plate));
+        return f ? f.plate : (last4(c) || c);
+      }
+      // เทียบทั้งประโยคกับรถที่มี
+      for (const t of trucks) {
+        if (raw.includes(t.plate) || (last4(t.plate) && raw.includes(last4(t.plate)))) return t.plate;
+      }
+      return '';
+    }
+    function findTruckByPlateOrDigits(input) {
+      const trucks = getTrucks();
+      const dig = last4(input);
+      return trucks.find(t => matchPlate(input, t.plate) || (dig && last4(t.plate) === dig)) || null;
+    }
+    function extractDriver(raw) {
+      const dm = raw.match(/(?:คนขับ|ขับโดย|คนขับชื่อ)\s*([ก-๙a-zA-Z\s]{2,30})/);
+      if (dm) return dm[1].trim().split(/\s+/).slice(0, 2).join(' ');
+      // also plain name after ค้นหา/แก้ไข if no plate
+      return '';
+    }
+
+    function parseVoice(text) {
+      const raw = text.trim();
+      const low = raw.replace(/\s+/g, ' ');
+
+      // --- เพิ่มรถ (ต้องยืนยัน) ---
+      if (/เพิ่ม\s*รถ|เพิ่มทะเบียน|เพิ่มคนขับ/.test(low)) {
+        let plate = extractPlate(raw);
+        let driver = extractDriver(raw);
+        if (!driver) {
+          const m = raw.match(/คนขับ\s*([ก-๙a-zA-Z]+)/);
+          if (m) driver = m[1];
+        }
+        if (!plate && !driver) {
+          toast('พูดไม่ครบ: บอกทะเบียนหรือชื่อคนขับ');
+          resumeWorkListen();
+          return;
+        }
+        if (plate) {
+          const dig = String(plate).replace(/\D/g,'');
+          if (dig.length >= 4) plate = dig.slice(-4);
+        }
+        if (!plate && driver) plate = 'คนขับ-' + driver;
+        const msg = 'ยืนยันเพิ่มรถ?\nทะเบียน: ' + plate + (driver ? '\nคนขับ: ' + driver : '') + '\n(ใส่แค่ 4 หลักท้ายได้)';
+        if (confirm(msg)) {
+          const trucks = getTrucks();
+          if (trucks.some(t => t.plate === plate || matchPlate(plate, t.plate))) toast('มีรถนี้แล้ว');
+          else {
+            trucks.push({ plate, team: '', driver: driver || '' });
+            saveTrucks(trucks);
+            updateSelects();
+            if (typeof renderManage === 'function') renderManage();
+            toast('เพิ่มรถแล้ว: ' + plate);
+          }
+        } else toast('ยกเลิกการเพิ่มรถ');
+        resumeWorkListen();
+        return;
+      }
+
+      // --- ค้นหา ---
+      if (/ค้นหา|หา\s*รถ|หา\s*คนขับ/.test(low)) {
+        let plate = extractPlate(raw);
+        let driver = extractDriver(raw);
+        if (!driver) {
+          const m = raw.match(/(?:ค้นหา|หา)\s*(?:คนขับ\s*)?([ก-๙a-zA-Z]{2,20})/);
+          if (m && !/\d/.test(m[1])) driver = m[1];
+        }
+        const q = plate || driver || raw.replace(/ค้นหา|หา/g, '').trim();
+        const qs = document.getElementById('quickSearch');
+        if (qs) { qs.value = q; quickFind(); }
+        document.getElementById('searchInput') && (document.getElementById('searchInput').value = q);
+        switchTab('list');
+        renderList();
+        toast('ค้นหา: ' + q);
+        resumeWorkListen();
+        return;
+      }
+
+      // --- ลบ (ลบล่าสุดของรถ/คนขับวันนี้ อัตโนมัติ) ---
+      if (/^ลบ|ลบรายการ|ลบ\s*รถ|ลบ\s*เที่ยว/.test(low)) {
+        let plate = extractPlate(raw);
+        let driver = extractDriver(raw);
+        let records = getDayRecords(currentDate);
+        let target = null;
+        if (plate) {
+          const list = records.filter(r => r.truck === plate || matchPlate(plate, r.truck));
+          target = list.sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || ''))[0];
+        } else if (driver) {
+          const list = records.filter(r => (r.driver || '').includes(driver));
+          target = list.sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || ''))[0];
+        } else if (records.length) {
+          target = records.slice().sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || ''))[0];
+        }
+        if (!target) {
+          toast('ไม่พบรายการให้ลบ');
+          resumeWorkListen();
+          return;
+        }
+        setDayRecords(currentDate, records.filter(r => r.id !== target.id));
+        renderList();
+        renderSummary();
+        toast('ลบแล้ว: ' + target.truck + (target.driver ? ' / ' + target.driver : '') + ' ' + target.trips + ' เที่ยว');
+        resumeWorkListen();
+        return;
+      }
+
+      // --- แก้ไข ---
+      if (/แก้ไข|เปลี่ยน|ปรับ/.test(low)) {
+        let plate = extractPlate(raw);
+        let driver = extractDriver(raw);
+        const tm = raw.match(/(\d+(?:\.\d+)?)\s*เที่ยว/) || raw.match(/เที่ยว\s*(\d+(?:\.\d+)?)/);
+        const newTrips = tm ? parseFloat(tm[1]) : null;
+        let records = getDayRecords(currentDate);
+        let target = null;
+        if (plate) {
+          const list = records.filter(r => r.truck === plate || matchPlate(plate, r.truck));
+          target = list.sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || ''))[0];
+        } else if (driver) {
+          const list = records.filter(r => (r.driver || '').includes(driver));
+          target = list.sort((a, b) => (b.recordedAt || '').localeCompare(a.recordedAt || ''))[0];
+        }
+        if (!target) {
+          toast('ไม่พบรายการให้แก้ไข');
+          resumeWorkListen();
+          return;
+        }
+        const idx = records.findIndex(r => r.id === target.id);
+        if (idx < 0) { resumeWorkListen(); return; }
+        const old = records[idx];
+        const changes = {};
+        if (newTrips != null && newTrips > 0) {
+          changes.เที่ยว = old.trips + '→' + newTrips;
+          records[idx] = { ...old, trips: newTrips, updatedAt: new Date().toISOString(), updatedBy: currentUser ? currentUser.name : '' };
+        }
+        const lm = raw.match(/(?:ไป|ที่|สถานที่|ไซต์)\s*(.+?)(?:\s+\d|$)/);
+        if (lm) {
+          changes.สถานที่ = lm[1].trim();
+          records[idx].location = lm[1].trim();
+        }
+        if (Object.keys(changes).length) {
+          addHistory(records[idx], 'แก้ไขด้วยเสียง', changes);
+          setDayRecords(currentDate, records);
+          renderList();
+          renderSummary();
+          toast('แก้ไขแล้ว: ' + records[idx].truck + ' → ' + JSON.stringify(changes));
+        } else {
+          // open form for manual edit
+          if (typeof openEditInForm === 'function') openEditInForm(target.id);
+          else openEdit(target.id);
+          toast('เปิดรายการแก้ไข: ' + target.truck);
+        }
+        resumeWorkListen();
+        return;
+      }
+
+      // --- บันทึกเที่ยวปกติ ---
+      let team = '', truck = '', driver = '', trips = 1, fuel = 0, location = '';
+      const teams = getTeams(), trucks = getTrucks();
+
+      for (const t of teams) {
+        if (raw.includes(t) || raw.includes(t.replace('ทีม', '').trim())) { team = t; break; }
+      }
+      if (!team) {
+        const m = raw.match(/ทีม\s*([ก-ฮa-zA-Z0-9]+)/i) || raw.match(/(แดง|น้ำเงิน|เขียว|เหลือง|ก|ข|ค|ง)/);
+        if (m) {
+          const f = teams.find(t => t.includes(m[1]));
+          team = f || ('ทีม ' + m[1]);
+        }
+      }
+      truck = extractPlate(raw);
+      if (truck) {
+        const ft = trucks.find(t => t.plate === truck);
+        if (ft) {
+          if (!team && ft.team) team = ft.team;
+          if (ft.driver) driver = ft.driver;
+        }
+      }
+      driver = extractDriver(raw) || driver;
+      const tm = raw.match(/(\d+(?:\.\d+)?)\s*เที่ยว/) || raw.match(/เที่ยว\s*(\d+(?:\.\d+)?)/);
+      if (tm) trips = parseFloat(tm[1]);
+      const fm = raw.match(/(?:เติม|น้ำมัน)\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*ลิตร/);
+      if (fm) fuel = parseFloat(fm[1] || fm[2]);
+      const locm = raw.match(/(?:ไป|ที่|สถานที่|ไซต์|โครงการ)\s*(.+?)(?:\s+\d|$)/);
+      if (locm) location = locm[1].trim();
+
+      if (!team && teams.length === 1) team = teams[0];
+      if (!truck && trucks.length === 1) {
+        truck = trucks[0].plate;
+        if (!team) team = trucks[0].team;
+        if (!driver) driver = trucks[0].driver;
+      }
+
+      updateSelects(team || undefined);
+      if (team) {
+        if (!getTeams().includes(team)) {
+          const ts = getTeams(); ts.push(team); saveTeams(ts); updateSelects(team);
+        }
+        document.getElementById('teamSelect').value = team;
+      }
+      if (truck) {
+        {
+          const dig = String(truck).replace(/\D/g,'');
+          if (dig.length >= 4) truck = dig.slice(-4);
+          const existing = findTruckByPlateOrDigits(truck);
+          if (existing) {
+            truck = existing.plate;
+          } else if (!getTrucks().some(t => t.plate === truck)) {
+            const tr = getTrucks();
+            tr.push({ plate: truck, team: team || '', driver: driver || '' });
+            saveTrucks(tr);
+            updateSelects(team);
+          }
+        }
+        document.getElementById('truckSelect').value = truck;
+        onTruckChange();
+      }
+      if (driver) document.getElementById('driver').value = driver;
+      document.getElementById('trips').value = trips;
+      if (fuel) document.getElementById('fuel').value = fuel;
+      if (location) document.getElementById('location').value = location;
+      document.getElementById('note').value = 'เสียง: ' + raw;
+      document.getElementById('editId').value = '';
+
+      // บันทึกได้ถ้ามีรถ+เที่ยว (ทีมไม่บังคับจากเสียง)
+      if (truck && trips > 0) {
+        if (!team) {
+          const ft = getTrucks().find(t => t.plate === truck);
+          team = (ft && ft.team) || getTeams()[0] || 'ไม่ระบุ';
+          document.getElementById('teamSelect').value = team;
+        }
+        setTimeout(() => {
+          document.getElementById('entryForm').requestSubmit();
+          toast('บันทึกจากเสียง ✓');
+          resumeWorkListen();
+        }, 350);
+      } else {
+        toast('ข้อมูลไม่ครบ (ต้องมีทะเบียนรถและจำนวนเที่ยว)');
+        switchTab('record');
+        resumeWorkListen();
+      }
+    }
+
+    // ===== Export =====
+    
+    function printDailyReport() {
+      const data = buildDailyReport();
+      const html = '<div style="font-family:sans-serif;max-width:800px;margin:0 auto"><h2 style="color:#0f766e">📋 สรุปงานขายดิน</h2><p style="color:#475569">' + data.dateLabel + '<br>ผู้จัดทำ: ' + (currentUser ? currentUser.name : '-') + '</p><hr style="border:none;border-top:2px solid #0f766e"><pre style="white-space:pre-wrap;font-family:inherit;font-size:11pt;line-height:1.5">' + data.text.replace(/</g,'&lt;') + '</pre></div>';
+      const pa = document.getElementById('printArea');
+      if (!pa) { toast('ไม่พบพื้นที่พิมพ์'); return; }
+      pa.innerHTML = html;
+      pa.style.display = 'block';
+      closeSummaryModal();
+      setTimeout(function(){ window.print(); setTimeout(function(){ pa.style.display='none'; pa.innerHTML=''; }, 400); }, 200);
+      toast('เปิดหน้าพิมพ์ · เลือก "บันทึกเป็น PDF" ได้');
+    }
+    function quickFind() {
+      const q = (document.getElementById('quickSearch')||{}).value;
+      const box = document.getElementById('quickResult');
+      if (!box) return;
+      const qq = (q||'').trim().toLowerCase();
+      if (!qq) { box.innerHTML = ''; return; }
+      const trucks = getTrucks();
+      const matches = trucks.filter(function(t){
+        const p = (t.plate||'').toLowerCase();
+        const d = (t.driver||'').toLowerCase();
+        const dig = qq.replace(/\D/g,'');
+        return p.indexOf(qq)>=0 || d.indexOf(qq)>=0 || (dig && (p.replace(/\D/g,'').slice(-4)===dig.slice(-4) || p.replace(/\D/g,'').indexOf(dig)>=0));
+      });
+      if (!matches.length) { box.innerHTML = '<span style="color:#dc2626">ไม่พบข้อมูล</span>'; return; }
+      box.innerHTML = matches.map(function(t){
+        return '<div style="padding:6px 0;border-bottom:1px solid #e2e8f0;cursor:pointer" onclick="fillFromTruck(\\''+t.plate.replace(/'/g,"\\\\'")+'\\')">🚛 <strong>'+t.plate+'</strong> '+(t.driver?('· '+t.driver):'')+(t.team?(' · '+t.team):'')+' <span style="color:#0f766e;font-size:0.75rem">← กดเพื่อเติมฟอร์ม</span></div>';
+      }).join('');
+    }
+    function fillFromTruck(plate) {
+      const t = getTrucks().find(function(x){ return x.plate===plate; });
+      if (!t) return;
+      updateSelects(t.team||undefined);
+      if (t.team) document.getElementById('teamSelect').value = t.team;
+      document.getElementById('truckSelect').value = t.plate;
+      if (t.driver) document.getElementById('driver').value = t.driver;
+      document.getElementById('editId').value = '';
+      document.getElementById('saveBtn').textContent = '💾 บันทึก';
+      const qr = document.getElementById('quickResult');
+      if (qr) qr.innerHTML = '<span style="color:#0f766e">✓ เติมข้อมูล '+t.plate+' แล้ว</span>';
+      toast('เติมข้อมูลรถแล้ว');
+    }
+
+    function exportCSV() {
+      const all=loadAll();
+      const rows=[['วันที่','เวลา','ทีม','รถ','คนขับ','เที่ยว','น้ำมัน(ลิตร)','สถานที่','เริ่มงาน','หยุดงาน','หมายเหตุ']];
+      Object.keys(all).sort().forEach(date=>{
+        (all[date]||[]).forEach(r=>rows.push([date,r.time||'',r.team||'',r.truck||'',r.driver||'',r.trips||0,r.fuel||0,r.location||'',r.startTime||'',r.endTime||'',(r.note||'').replace(/,/g,' ')]));
+      });
+      if(rows.length<2) return toast('ไม่มีข้อมูล');
+      const blob=new Blob(['\uFEFF'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`บันทึกขายดิน_${todayStr()}.csv`; a.click();
+      toast('Export เรียบร้อย');
+    }
+
+    // ===== Init =====
+    function initApp() {
+      if(appInited){ loadDay(); return; }
+      appInited=true;
+      document.getElementById('workDate').value=currentDate;
+      initVoice(); updateSelects(); loadDay(); renderManage();
+      document.getElementById('editModal').addEventListener('click',e=>{ if(e.target.id==='editModal') closeModal(); });
+      document.getElementById('editTruckModal').addEventListener('click',e=>{ if(e.target.id==='editTruckModal') closeTruckModal(); });
+      document.getElementById('summaryModal').addEventListener('click',e=>{ if(e.target.id==='summaryModal') closeSummaryModal(); });
+    }
+    document.getElementById('pinInput').addEventListener('keydown',e=>{ if(e.key==='Enter') handleLogin(); });
+    checkAuth();
+    // สำรอง: ผูกปุ่มแท็บด้วย addEventListener กรณี onclick ถูกบล็อก
+    (function bindLoginTabs() {
+      const a = document.getElementById('tabLoginBtn');
+      const b = document.getElementById('tabRegBtn');
+      const c = document.getElementById('goRegisterLink');
+      if (a) a.addEventListener('click', function(e){ e.preventDefault(); switchLoginTab('login'); });
+      if (b) b.addEventListener('click', function(e){ e.preventDefault(); switchLoginTab('register'); });
+      if (c) c.addEventListener('click', function(e){ e.preventDefault(); switchLoginTab('register'); });
+    })();
+  </script>
+</body>
+</html>
